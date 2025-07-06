@@ -113,7 +113,9 @@ graph TD
 1. **用户按下 Esc 键**
 
    - 浏览器原生行为触发 dialog 关闭
+   - 这是 HTML `<dialog>` 元素的内置行为，无需 JavaScript 代码
    - dialog 元素发出 "close" 事件
+   - **重要**：此时 DOM 已更改，但 React 状态 `isDialogModalOpen` 仍为 `true`
 
 2. **第二个 useEffect 中的事件监听捕获事件**
 
@@ -129,19 +131,37 @@ graph TD
    }, [onClose]);
    ```
 
+   **深入解析**:
+
+   - 这个 useEffect 在组件挂载时执行，为 dialog 元素添加 "close" 事件监听器
+   - 监听器引用的是传入组件的 `onClose` prop
+   - 当 dialog 元素的 "close" 事件触发时，这个监听器会调用 `onClose` 回调
+   - 依赖项 `[onClose]` 确保如果父组件传入新的 onClose 函数，监听器会重新绑定
+   - 返回的清理函数在组件卸载时移除事件监听器，防止内存泄漏
+
 3. **onClose 回调执行**
 
    ```jsx
    onClose={() => setIsDialogModalOpen(false)}
    ```
 
-   - 调用 `setIsDialogModalOpen(false)`
+   - 当 dialog 的 "close" 事件触发时，调用 `onClose`
+   - 执行 `setIsDialogModalOpen(false)`
    - React 状态更新
    - React 重新渲染组件
 
 4. **第一个 useEffect 匹配新状态**
-   - isOpen 现在为 false，但 dialog 已经关闭了
-   - 状态与 DOM 保持一致
+   - `isOpen` 现在为 false，但 dialog 已经被浏览器自动关闭
+   - 第一个 useEffect 检测到 `isOpen` 变为 false，但不需要再次调用 `dialog.close()`
+   - 这一步对于此路径来说是"无操作"的，因为 DOM 已经更新
+   - 这完成了从 DOM 到 React 再到 DOM 的完整同步循环
+
+**DOM → React 路径的重要性**:
+
+- 没有这个路径，当用户按 Esc 键关闭对话框时，React 状态不会更新
+- 这会导致状态不一致：DOM 显示对话框已关闭，但 React 状态 `isOpen` 仍为 true
+- 如果用户再次尝试打开对话框，由于 React 认为对话框已经打开，第一个 useEffect 可能不会触发
+- 这个方向的同步确保了无论通过什么方式关闭对话框，React 状态都会正确更新
 
 ## 为什么需要两个 useEffect?
 
