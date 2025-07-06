@@ -131,13 +131,45 @@ graph TD
    }, [onClose]);
    ```
 
-   **深入解析**:
+   **深入解析：useEffect 事件监听捕获机制**:
 
-   - 这个 useEffect 在组件挂载时执行，为 dialog 元素添加 "close" 事件监听器
-   - 监听器引用的是传入组件的 `onClose` prop
-   - 当 dialog 元素的 "close" 事件触发时，这个监听器会调用 `onClose` 回调
-   - 依赖项 `[onClose]` 确保如果父组件传入新的 onClose 函数，监听器会重新绑定
-   - 返回的清理函数在组件卸载时移除事件监听器，防止内存泄漏
+   - **事件监听设置时机**：
+
+     - 这个 useEffect 在组件挂载完成后立即执行
+     - 首次渲染时和依赖项 `onClose` 改变时执行
+
+   - **事件监听器注册过程**：
+
+     ```js
+     // 获取真实 DOM 节点引用
+     const dialog = dialogRef.current;
+
+     // 添加原生 DOM 事件监听器
+     dialog.addEventListener("close", onClose);
+     ```
+
+   - **事件捕获原理**：
+     - `addEventListener` 是浏览器原生 DOM API，不是 React 特性
+     - 当 dialog 元素触发 "close" 事件时，浏览器会查找所有注册到该元素该事件类型的监听器
+     - 找到后调用监听器函数，传入事件对象作为参数
+   - **事件监听与 React 生命周期**：
+     - React 不直接处理原生事件，useEffect 只是提供了适合添加/移除事件监听的时机
+     - 组件每次重渲染时，旧的事件监听器会通过清理函数被移除
+     - 然后添加新的事件监听器，确保总是使用最新的 props 和状态
+   - **监听器引用的是传入组件的 `onClose` prop**
+
+   - **依赖项 `[onClose]` 的作用**：
+     - 确保如果父组件传入新的 onClose 函数，先移除旧监听器再添加新监听器
+     - 防止使用过时的闭包，始终使用最新的回调函数
+   - **清理机制**：
+     ```js
+     return () => {
+       dialog.removeEventListener("close", onClose);
+     };
+     ```
+     - 在组件卸载前执行
+     - 在依赖项变化导致 effect 重新执行前执行
+     - 防止内存泄漏和多余事件处理器
 
 3. **onClose 回调执行**
 
@@ -175,3 +207,138 @@ graph TD
    - 确保当 DOM 状态发生变化时，React 状态也随之更新
 
 这种双向同步机制确保了无论状态变化的来源是 React 还是 DOM，两者都能保持一致，提供可靠的用户体验。
+
+## 完整使用实例：从打开到 ESC 关闭的全过程
+
+以下是一个完整的实例，展示从用户点击打开按钮到使用 ESC 键关闭 DialogModal 的整个过程：
+
+### 1. 初始状态
+
+- 页面加载，React 渲染初始组件
+- `isDialogModalOpen` 状态初始值为 `false`
+- DialogModal 组件接收 `isOpen={false}` 和 `onClose` 函数
+- 对话框处于关闭状态
+
+### 2. 打开对话框（React → DOM）
+
+- **用户点击"Show Dialog Modal"按钮**
+
+  - 触发 `onClick={() => setIsDialogModalOpen(true)}` 事件处理函数
+  - React 调用 `setIsDialogModalOpen(true)` 更新状态
+
+- **React 状态更新**
+
+  - React 将 `isDialogModalOpen` 从 `false` 改为 `true`
+  - React 触发重新渲染
+  - 父组件重新渲染，DialogModal 组件接收新的 props: `isOpen={true}`
+
+- **DialogModal 组件重新渲染**
+
+  - 组件函数体重新执行，创建新的 JSX 元素
+  - `useEffect` 钩子检测依赖项 `[isOpen]` 变化
+
+- **第一个 useEffect 执行**
+
+  ```jsx
+  useEffect(() => {
+    const dialog = dialogRef.current; // 获取真实DOM引用
+    if (dialog == null) return;
+
+    if (isOpen) {
+      // 此时 isOpen 为 true
+      dialog.showModal(); // 调用原生DOM方法显示对话框
+    } else {
+      dialog.close();
+    }
+  }, [isOpen]);
+  ```
+
+  - 检测到 `isOpen` 从 `false` 变为 `true`
+  - 获取 `dialogRef.current` 引用的真实 DOM 节点
+  - 调用原生 `showModal()` 方法打开对话框
+  - 浏览器显示对话框
+
+- **第二个 useEffect**（组件挂载时已执行，现在不会重新执行，因为 `onClose` 没变）
+  ```jsx
+  useEffect(() => {
+    const dialog = dialogRef.current;
+    if (dialog == null) return;
+
+    dialog.addEventListener("close", onClose); // 已在组件挂载时设置
+    return () => {
+      dialog.removeEventListener("close", onClose);
+    };
+  }, [onClose]);
+  ```
+
+### 3. 用户按下 Esc 键关闭对话框（DOM → React）
+
+- **用户按下 Esc 键**
+
+  - 浏览器检测到键盘事件
+  - 由于 `<dialog>` 元素处于打开状态，浏览器默认行为会处理 Esc 键
+  - 浏览器自动关闭对话框（DOM 已更改，对话框不可见）
+  - 浏览器在 dialog 元素上触发原生 "close" 事件
+
+- **事件监听器捕获 "close" 事件**
+
+  - 之前在第二个 useEffect 中注册的事件监听器被触发
+  - ```js
+    dialog.addEventListener("close", onClose);
+    ```
+  - 浏览器调用 `onClose` 函数，即 `() => setIsDialogModalOpen(false)`
+
+- **React 状态更新**
+
+  - `setIsDialogModalOpen(false)` 执行
+  - React 将 `isDialogModalOpen` 从 `true` 改为 `false`
+  - React 触发重新渲染
+  - 父组件重新渲染，DialogModal 组件接收新的 props: `isOpen={false}`
+
+- **DialogModal 组件重新渲染**
+
+  - 组件函数体重新执行，创建新的 JSX 元素
+  - `useEffect` 钩子检测依赖项 `[isOpen]` 变化
+
+- **第一个 useEffect 再次执行**
+
+  ```jsx
+  useEffect(() => {
+    const dialog = dialogRef.current;
+    if (dialog == null) return;
+
+    if (isOpen) {
+      // 此时 isOpen 为 false
+      dialog.showModal();
+    } else {
+      dialog.close(); // 这行代码执行，但实际上对话框已经关闭
+    }
+  }, [isOpen]);
+  ```
+
+  - 检测到 `isOpen` 从 `true` 变为 `false`
+  - 尝试调用 `dialog.close()`，但对话框已经被浏览器关闭
+  - 这是一个"无操作"，因为 DOM 已经与期望的状态一致
+
+- **完成状态同步**
+  - React 状态: `isDialogModalOpen = false`
+  - DOM 状态: 对话框已关闭
+  - 状态一致，用户界面正确反映当前应用状态
+
+### 关键点总结
+
+1. **双向同步机制**:
+
+   - React → DOM: 通过第一个 useEffect 将 React 状态变化转换为 DOM 操作
+   - DOM → React: 通过第二个 useEffect 将 DOM 事件转换回 React 状态更新
+
+2. **声明式与命令式的桥接**:
+
+   - React 使用声明式编程（通过状态描述 UI）
+   - DOM API 使用命令式编程（直接操作 DOM）
+   - useEffect 充当两者之间的桥梁
+
+3. **事件处理的完整循环**:
+   - React 状态变化 → DOM 更新
+   - DOM 事件 → React 状态更新
+   - 确保无论从哪个方向触发变化，两者都能保持同步
