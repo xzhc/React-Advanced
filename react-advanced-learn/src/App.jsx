@@ -1,6 +1,6 @@
-import { AdvancedKeyExample } from "./AdvancedKeyExample";
+import { CaptureEventDemo } from "./components/CaptureEventDemo";
 
 function App() {
-  return <AdvancedKeyExample />;
+  return <CaptureEventDemo />;
 }
 export default App;

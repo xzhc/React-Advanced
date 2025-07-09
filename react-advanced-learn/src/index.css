@@ -85,6 +85,12 @@ button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
 }
 
+/* 导航按钮样式 */
+.buttons button.active {
+  background-color: #646cff;
+  border-color: #646cff;
+}
+
 .value-display {
   margin-top: 2rem;
   padding: 1rem;
@@ -399,4 +405,161 @@ code {
   background-color: #f5f5f5;
   border-radius: 6px;
   margin-top: 1rem;
+}
+
+/* 事件捕获演示样式 */
+.capture-event-demo {
+  margin: 2rem auto;
+  max-width: 800px;
+  font-family: Arial, sans-serif;
+}
+
+.capture-event-demo h2 {
+  margin-bottom: 1.5rem;
+  color: #2c3e50;
+  text-align: center;
+}
+
+/* 测试区域样式 */
+.capture-event-demo .outer {
+  position: relative;
+  width: 300px;
+  height: 200px;
+  background-color: #64b5f6; /* 蓝色 */
+  margin: 0 auto;
+  padding: 20px;
+  border-radius: 8px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.capture-event-demo .outer:hover {
+  background-color: #42a5f5;
+}
+
+.capture-event-demo .inner {
+  width: 150px;
+  height: 100px;
+  background-color: #ff8a65; /* 橙色 */
+  border-radius: 8px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.capture-event-demo .inner:hover {
+  background-color: #ff7043;
+}
+
+/* 日志区域样式 */
+.capture-event-demo .event-log {
+  margin: 2rem auto;
+  padding: 1.5rem;
+  background-color: #f5f5f5;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  max-width: 600px;
+}
+
+.capture-event-demo .event-log h3 {
+  margin-top: 0;
+  color: #2c3e50;
+  font-size: 1.2rem;
+  margin-bottom: 1rem;
+  border-bottom: 1px solid #e0e0e0;
+  padding-bottom: 0.5rem;
+}
+
+.capture-event-demo .event-log ol {
+  padding-left: 1.5rem;
+  margin-bottom: 0;
+}
+
+.capture-event-demo .event-log li {
+  padding: 0.5rem 0;
+  border-bottom: 1px dashed #e0e0e0;
+  font-family: monospace;
+  font-size: 0.95rem;
+}
+
+.capture-event-demo .event-log li:nth-child(1) {
+  color: #1976d2; /* 捕获阶段 - 蓝色 */
+}
+
+.capture-event-demo .event-log li:nth-child(2) {
+  color: #0d47a1; /* 捕获阶段 - 深蓝色 */
+}
+
+.capture-event-demo .event-log li:nth-child(3) {
+  color: #d84315; /* 冒泡阶段 - 橙色 */
+}
+
+.capture-event-demo .event-log li:nth-child(4) {
+  color: #bf360c; /* 冒泡阶段 - 深橙色 */
+}
+
+.capture-event-demo .event-log button {
+  background-color: #607d8b;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+  padding: 0.4rem 1rem;
+}
+
+.capture-event-demo .event-log button:hover {
+  background-color: #455a64;
+}
+
+/* 解释区域样式 */
+.capture-event-demo .explanation {
+  margin: 2rem auto;
+  padding: 1.5rem;
+  background-color: #e3f2fd;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  max-width: 600px;
+}
+
+.capture-event-demo .explanation p {
+  margin-top: 0;
+  font-weight: bold;
+  color: #1565c0;
+}
+
+.capture-event-demo .explanation ol {
+  padding-left: 1.5rem;
+}
+
+.capture-event-demo .explanation li {
+  margin-bottom: 0.5rem;
+}
+
+.capture-event-demo .explanation li:nth-child(1) {
+  color: #1976d2; /* 捕获阶段 - 蓝色 */
+}
+
+.capture-event-demo .explanation li:nth-child(2) {
+  color: #673ab7; /* 目标阶段 - 紫色 */
+}
+
+.capture-event-demo .explanation li:nth-child(3) {
+  color: #d84315; /* 冒泡阶段 - 橙色 */
+}
+
+.capture-event-demo .explanation p:last-child {
+  margin-top: 1rem;
+  color: #d32f2f;
+  font-style: italic;
+  border-top: 1px dashed #bbdefb;
+  padding-top: 0.5rem;
 }
