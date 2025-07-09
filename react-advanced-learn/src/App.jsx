@@ -1,6 +1,6 @@
-import { ErrorBoundaryDemo } from "./components/ErrorBoundaryDemo";
+import { AdvancedKeyExample } from "./AdvancedKeyExample";
 
 function App() {
-  return <ErrorBoundaryDemo />;
+  return <AdvancedKeyExample />;
 }
 export default App;
