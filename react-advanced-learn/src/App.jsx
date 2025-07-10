@@ -1,6 +1,6 @@
-import { CaptureEventDemo } from "./components/CaptureEventDemo";
+import { ResizeExample } from "./components/ResizeExample";
 
 function App() {
-  return <CaptureEventDemo />;
+  return <ResizeExample />;
 }
 export default App;
