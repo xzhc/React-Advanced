@@ -1,6 +1,6 @@
-import { ResizeExample } from "./components/ResizeExample";
+import { UserStatus } from "./components/UserStatus";
 
 function App() {
-  return <ResizeExample />;
+  return <UserStatus />;
 }
 export default App;
